@@ -1,0 +1,167 @@
+# DiagPriv
+
+**Paper:** *DiagPriv: Preserving Diagnostic Structure While Reducing Sensitive Data Exposure in LLM Root-Cause Analysis*
+
+**Zenodo preprint:** https://zenodo.org/records/23142445
+**DOI:** https://doi.org/10.5281/zenodo.23142445
+
+The name **DiagPriv** combines diagnosis and privacy. DiagPriv is an academic
+research project studying whether privacy
+transformations can remove sensitive identity from operational troubleshooting
+evidence while retaining the relationships an LLM needs for root-cause
+analysis (RCA). Its companion benchmark, DiagBench, contains three fully
+synthetic incident families; no production or customer data is used.
+
+The central hypothesis is that a transformation which preserves explicitly
+declared diagnostic invariants will retain more RCA utility than a
+representation that destroys those task-relevant relations. Current results
+are controlled synthetic development observations, not proof of that
+hypothesis, a universal method ranking, or evidence of production validity.
+
+## Current status
+
+| Condition | Split | Status | Result |
+|---|---|---|---|
+| Raw, `raw-rca-v2` | Development 1000–1004 | Frozen | 5/5 exact RCA; 5/5 overall |
+| Raw, `raw-rca-v2` | Validation 2000–2009 | Frozen | 10/10 exact RCA; 9/10 overall |
+| `redaction-v1` | Development 1000–1004 | Frozen | 4/5 exact RCA; 4/5 overall |
+| `hmac-v1` | Development 1000–1004 | Frozen | 5/5 exact RCA |
+| `tokenization-v1` | Development 1000–1004 | Frozen | 5/5 exact RCA |
+| `format-preserving-v1` | Development 1000–1004 | Frozen | 4/5 exact RCA |
+
+Incident Family 002 is a reviewed synthetic benchmark in which reference
+structure is deliberately necessary to diagnose a missing provisioning effect.
+Its six-seed, five-condition, three-trial development comparison and separate
+transport-recovery sensitivity analysis are complete and frozen. Raw achieved
+15/18 correct triggers and failure mechanisms; format-preserving-v1 achieved
+10/18; redaction-v1, HMAC-v1, and tokenization-v1 achieved 2/18, 1/18, and 2/18
+respectively. These are directional development observations, not causal or
+general conclusions. No Incident 002 validation or held-out observation exists.
+Do not rerun completed experiments, run a privacy condition on validation, or
+inspect held-out seeds without explicit research approval.
+
+Incident Family 003 v3 is a matched target/temporal-twin benchmark designed
+after an earlier temporal construction was shown to contain non-temporal
+shortcuts. Four frozen constructions are queried under raw, relative-time, and
+temporal-ablation evidence. Paired mechanism discrimination is 3/4 under raw,
+2/4 under relative time, and 0/4 under ablation. Target mechanisms remain 4/4
+in all three conditions; the degradation occurs on the twins, which collapse
+to the target's concurrency mechanism under ablation. This is a small
+directional development observation, not a provider-level causal estimate or
+evidence of general temporal-reasoning performance. No Incident 003 validation
+or held-out observation exists.
+
+See [CURRENT_STATUS](docs/CURRENT_STATUS.md) for immutable artifact hashes and
+known limitations, and [RESEARCH_PLAN](docs/RESEARCH_PLAN.md) for the roadmap.
+
+## Reproduce the software checks
+
+Python 3.12 or newer and [uv](https://docs.astral.sh/uv/) are recommended.
+
+```bash
+uv sync --extra dev
+uv run pytest
+git diff --check
+uv run python paper/render_tables.py --check
+```
+
+The manuscript source is under `paper/`. With a TeX distribution that
+provides `latexmk` and the packages used by `paper/main.tex`, build from
+`paper/` with:
+
+```bash
+latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex
+```
+
+The frozen-artifact verifier is provider-free:
+
+```bash
+uv run python -m diagpriv.artifacts verify --all
+```
+
+In an ordinary clean clone the exact provider-result JSONLs are intentionally
+absent, so exit code 2 with `MISSING` entries is expected. The verifier does
+not download or rerun provider observations.
+
+Tests use an offline fake provider. They do not authorize real API calls. The
+canonical development fixture can be regenerated with:
+
+```bash
+uv run python -m diagbench.generators.incident_001 --seed 1001
+uv run python -m diagbench.generators.incident_002 --seed 1001
+```
+
+## Repository map
+
+- `diagbench/schema/`: oracle and model-visible data models.
+- `diagbench/generators/`: deterministic synthetic incident generation and seed
+  policy.
+- `diagbench/incidents/`: canonical generated fixtures and family notes.
+- `diagpriv/evaluation/`: frozen prompts and taxonomies, provider abstraction,
+  parsing, scoring, manifests, reporting, and CLI.
+- `diagpriv/transformations/`: annotation-driven privacy baselines.
+- `diagpriv/invariants/`: offline diagnostic-invariant evaluation.
+- `experiments/`: versioned, reviewable pilot and pricing configurations.
+- `results/`: local append-only experiment artifacts; ignored by Git except for
+  `.gitkeep`.
+- `tests/`: benchmark, protocol, transformation, and leakage regression tests.
+
+## Collaboration documents
+
+- [Research plan](docs/RESEARCH_PLAN.md)
+- [Current status and artifact ledger](docs/CURRENT_STATUS.md)
+- [Experiment protocol](docs/EXPERIMENT_PROTOCOL.md)
+- [Incident 003 v1 raw findings](docs/INCIDENT_003_V1_RAW_FINDINGS.md)
+- [Incident 003 relative-time findings](docs/INCIDENT_003_RELATIVE_TIME_V1_FINDINGS.md)
+- [RCA v3 methodology decision](docs/RCA_V3_METHODOLOGY.md)
+- [Threat model](docs/THREAT_MODEL.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Current clean-room reproducibility review](docs/CLEAN_ROOM_REPRODUCIBILITY_REVIEW.md)
+- [Historical fresh-clone reproducibility audit](docs/FRESH_CLONE_REPRODUCIBILITY_AUDIT.md)
+- [Privacy-exposure metrics RFC](docs/PRIVACY_EXPOSURE_METRICS_RFC.md)
+- [Statistical analysis plan RFC](docs/STATISTICAL_ANALYSIS_PLAN_RFC.md)
+- [Human baseline protocol RFC](docs/HUMAN_BASELINE_PROTOCOL_RFC.md)
+- [Task-aware planner RFC](docs/TASK_AWARE_PLANNER_RFC.md)
+- [Benchmark specification](docs/benchmark_spec.md)
+- [Research charter](docs/research_charter.md)
+- [Research questions](docs/research_questions.md)
+- [Naive redaction specification](docs/redaction_v1.md)
+- [HMAC baseline specification](docs/hmac_v1.md)
+- [Tokenization baseline specification](docs/tokenization_v1.md)
+- [Format-preserving baseline specification](docs/format_preserving_v1.md)
+- [Relative-time baseline specification](docs/relative_time_v1.md)
+- [Incident 002 protocol](docs/incident_002_protocol.md)
+- [Incident 002 final development findings](docs/INCIDENT_002_FINAL_FINDINGS.md)
+
+## Safety and scope
+
+- Never commit API credentials, HMAC secrets, `.env` files, or authorization
+  headers.
+- Evaluated models receive `ModelView`, never the full oracle-bearing
+  `Incident`.
+- Development seeds are 1000–1999; validation seeds are 2000–2999; the retired
+  range 10000–10999 must never be used; final held-out seeds 20000–20999 require
+  an explicit override after protocol freeze.
+- Real provider commands require `--execute`. Absence of that flag is a dry run.
+- Frozen JSONL observations are append-only research records and must not be
+  edited or silently rerun.
+
+## Reproducibility level
+
+The current repository provides **Level 1** reproducibility: tracked source,
+configs, deterministic generators/analyses, aggregate result data, generated
+paper assets, hashes, and offline verification tooling. A private exact-byte
+provider-observation archive is designed but is not currently provisioned
+(Level 2 unavailable), and there is no public observation-level provider
+release (Level 3 unavailable).
+
+## Licensing
+
+Software code in this repository is licensed under the Apache License 2.0 as
+described in `LICENSE` and `LICENSING.md`. Manuscript text, figures, and
+research narrative are not automatically covered by the software license; the
+preprint distribution license is handled separately.
+
+DiagPriv is not an anonymization guarantee, compliance tool, production privacy
+gateway, MCP service, or enterprise security product.
